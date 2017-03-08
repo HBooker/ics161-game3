@@ -4,14 +4,22 @@ using UnityEngine;
 
 public class UnitScript : MonoBehaviour {
 	public int level;
-	bool selected;
+	private bool isSelected = false;
 	bool moved;
+
+	public Material defaultMaterial;
+	public Material selectedMaterial;
+
+	private MeshRenderer mesh;
+	public Board currentTile = null;
 
 	// Use this for initialization
 	void Start () {
 		level = 1;
-		selected = false;
+		isSelected = false;
 		moved = false;
+
+		mesh = GetComponent<MeshRenderer> ();
 	}
 	
 	// Update is called once per frame
@@ -19,23 +27,30 @@ public class UnitScript : MonoBehaviour {
 		
 	}
 
-	private void OnMouseDown() {
-		if (Input.GetMouseButtonDown (0)) {
-			if (GameObject.FindWithTag ("unit")) {
-				selected = !selected;
-				if (selected)
-					selected = selected; //change later
-				else
-					selected = selected; // change later
-			}
+	private void OnLeftMouseDown() {
+		if (GameObject.FindWithTag ("unit")) {
+			isSelected = !isSelected;
+			if (isSelected)
+				isSelected = isSelected; //change later
+			else
+				isSelected = isSelected; // change later
 		}
+
 	}
 
 	public void SetMoved (bool has_moved) {
 		moved = has_moved;
 	}
 
-	public void SetSelected (bool is_selected) {
-		selected = is_selected;
+	public void Select()
+	{
+		mesh.material = selectedMaterial;
+		isSelected = true;
+	}
+
+	public void Deselect()
+	{
+		mesh.material = defaultMaterial;
+		isSelected = false;
 	}
 }

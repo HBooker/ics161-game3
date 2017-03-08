@@ -3,38 +3,55 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Board : MonoBehaviour {
-	public GameObject this_board;
-	public bool spawn_tile;
-	public bool selected;
-	public bool occupied;
-	public int player_on_tile;
-	public int player_owner;
-	// Use this for initialization
-	void Start () {
-		this_board = GetComponent<GameObject> ();
-		spawn_tile = false;
-		occupied = false;
-		selected = false;
-		player_on_tile = 0;
-		player_owner = 0;
-	}
-	
-	// Update is called once per frame
-	void Update () {
+	public bool isSpawner = false;
+	public bool selected = false;
+	public float unitYOffset = 4.0f;
+
+	public int player_on_tile = 0;
+	public int player_owner = 0;
+
+	public UnitScript occupyingUnit = null;
+
+	void Start () 
+	{
 		
 	}
 
-	public bool IsSpawn () {
-		return spawn_tile;
+	void Update ()
+	{
+		if (selected && Input.GetKeyDown (KeyCode.BackQuote)) {
+			Occupy (FindObjectOfType<UnitScript>());
+		}
 	}
 
-	public void SetOccupied (bool is_occupied) {
-		occupied = is_occupied;
+	public void Occupy(UnitScript unit)
+	{
+		if(IsOccupied())
+		{
+			//do something
+		}
+		else
+		{
+			Vector3 unitPosition = new Vector3 (transform.position.x, transform.position.y + unitYOffset, transform.position.z);
+			unit.transform.position = unitPosition;
+			occupyingUnit = unit;
+			unit.currentTile = this;
+		}
 	}
 
-	public bool GetOccupied () {
-		return occupied;
+	public void Vacate()
+	{
+		occupyingUnit.currentTile = null;
+		occupyingUnit = null;
 	}
+
+	public bool IsOccupied () 
+	{
+		return (occupyingUnit != null);
+	}
+
+
+
 
 	public void SetPlayerOnTile (int player_num) {
 		player_on_tile = player_num;

@@ -11,8 +11,8 @@ public class SpawnBoard : Board {
 
 	// Update is called once per frame
 	void Update () {
-		spawn_tile = true;
-		occupied = false;
+		isSpawner = true;
+		//occupied = false;
 	}
 	private void OnMouseDown() {
 		if (Input.GetMouseButtonDown (0)) {

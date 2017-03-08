@@ -7,7 +7,7 @@ public class GenerateBoardInEditor : MonoBehaviour
 {
 	public int boardWidth = 8;
 	public int boardHeight = 8;
-	public float tileWidth = 1.0f;
+	public float tileWidth = 10.0f;
 	public GameObject tilePrefab;
 
 	private const string GAMEBOARD_TAG = "gameboard";
@@ -28,10 +28,9 @@ public class GenerateBoardInEditor : MonoBehaviour
 	private void GenerateNewBoard(int width, int height)
 	{
 		int numBoards = GameObject.FindGameObjectsWithTag (GAMEBOARD_TAG).Length;
-		float halfWidth = tileWidth / 2;
 
 		//can still run into duplicate names if multiple boards are created, some deleted, then more created
-		GameObject boardObject = new GameObject("GameBoard" + numBoards++);
+		GameObject boardObject = new GameObject("GameBoard" + ++numBoards);
 
 
 		boardObject.tag = GAMEBOARD_TAG;
@@ -40,9 +39,9 @@ public class GenerateBoardInEditor : MonoBehaviour
 		{
 			for(int j = 0; j < height; ++j)
 			{
-				Vector3 tilePosition = new Vector3 (i * tileWidth + halfWidth, 0, j * tileWidth + halfWidth);
-				//Instantiate (tilePrefab, tilePosition, Quaternion.identity, boardObject.transform);
+				Vector3 tilePosition = new Vector3 (i * tileWidth, 0, j * tileWidth);
 				GameObject tile = (GameObject) UnityEditor.PrefabUtility.InstantiatePrefab (tilePrefab);
+				tile.name = "tile_" + i + "_" + j;
 				tile.transform.position = tilePosition;
 				tile.transform.rotation = Quaternion.identity;
 				tile.transform.SetParent (boardObject.transform);

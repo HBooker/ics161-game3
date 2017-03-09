@@ -185,3 +185,10 @@ MonoBehaviour:
   - {fileID: 0}
   p1_units: 0
   p2_units: 0
+  unitPrefab: {fileID: 1986909135127296, guid: 0b3dfcf2a2177fd478871a92799820ba, type: 2}
+  unitDefaultMaterials:
+  - {fileID: 2100000, guid: 142f18c7271e1084e8a6d0e574ba5b29, type: 2}
+  - {fileID: 2100000, guid: 2a4e24c2cd17def4191c24820431c845, type: 2}
+  unitSelectedMaterials:
+  - {fileID: 2100000, guid: 121814cff05479a4885952b6809e18dc, type: 2}
+  - {fileID: 2100000, guid: 34705e9572ec494479153957e5c209ec, type: 2}

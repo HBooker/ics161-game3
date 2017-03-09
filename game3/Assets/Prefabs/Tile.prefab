@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 65182760693779218}
   m_Layer: 8
   m_Name: Tile
-  m_TagString: Untagged
+  m_TagString: tile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -208,3 +208,5 @@ MonoBehaviour:
   player_on_tile: 0
   player_owner: 0
   occupyingUnit: {fileID: 0}
+  defaultMaterial: {fileID: 2100000, guid: 065539b78b36c1c47a4293add3d9fabc, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: a32abcae22124c141880cbc22d4f6a77, type: 2}

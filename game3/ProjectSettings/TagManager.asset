@@ -7,6 +7,9 @@ TagManager:
   - spawnboard
   - unit
   - gameboard
+  - tile
+  - p1sac
+  - p2sac
   layers:
   - Default
   - TransparentFX

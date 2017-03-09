@@ -11,10 +11,19 @@ public class Board : MonoBehaviour {
 	public int player_owner = 0;
 
 	public UnitScript occupyingUnit = null;
+	public Material defaultMaterial;
+	public Material highlightMaterial;
+
+	private MeshRenderer tileMesh;
 
 	void Start () 
 	{
-		
+		MeshRenderer[] meshes = GetComponentsInChildren<MeshRenderer> ();
+
+		if (meshes [0].material == defaultMaterial)
+			tileMesh = meshes [0];
+		else
+			tileMesh = meshes [1];
 	}
 
 	void Update ()
@@ -51,7 +60,17 @@ public class Board : MonoBehaviour {
 	}
 
 
-
+	public void SetHighlight(bool highlightOn)
+	{
+		if(highlightOn)
+		{
+			tileMesh.material = highlightMaterial;
+		}
+		else
+		{
+			tileMesh.material = defaultMaterial;
+		}
+	}
 
 	public void SetPlayerOnTile (int player_num) {
 		player_on_tile = player_num;

@@ -4,18 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameState : MonoBehaviour {
-	public BuildBoard board_builder;
-	public GameObject pawn_unit;
-	public static bool game_start;
-	bool end_turn;
-	public GameObject[] player1_units = new GameObject[64]; //change size later
-	public GameObject[] player2_units = new GameObject[64]; //change size later
-	public int p1_units;
-	public int p2_units;
-	int turn_phase = 3;
+	//int turn_phase = 3;
 	bool hasSpawned = false;
 	bool hasUpgraded = false;
-	int player_turn = 2;
+	int currentPlayer = 2;
 
 	int[] sacrifice = {0, 0};
 	private UnitScript selectedUnit = null;
@@ -25,88 +17,15 @@ public class GameState : MonoBehaviour {
 	public Material[] unitSelectedMaterials = new Material[2];
 	public bool gameOver = false;
 
-	// Use this for initialization
-	void Start () {
-		game_start = false;
-		end_turn = false;
-		p1_units = 0;
-		p2_units = 0;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-//		if (game_start) {
-//			
-//			if (end_turn) {
-//				end_turn = false;
-//				turn_phase++;
-//			}
-//			if (turn_phase == 1) {
-//				player_turn = 1;
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//
-//				for (int i = 0; i < BuildBoard.num_boards; i++) {
-//					Board current_board = BuildBoard.all_boards [i].GetComponent<Board>();
-//					if(current_board.isSpawner && current_board.GetOwner() == player_turn && !current_board.IsOccupied())
-//						Debug.Log ("Checking board: " + i.ToString() + " = " + current_board.IsSelected().ToString());
-//					if (!spawn && current_board.isSpawner && current_board.GetOwner() == player_turn && !current_board.IsOccupied() && current_board.IsSelected()) {
-//						Debug.Log ("Completed Unit Spawn for P1");
-//						Vector3 spawn_position = new Vector3 (BuildBoard.all_boards [i].transform.position.x, BuildBoard.all_boards [i].transform.position.y + 5,
-//							BuildBoard.all_boards [i].transform.position.z);
-//						player1_units [p1_units] = Instantiate (pawn_unit, spawn_position, Quaternion.identity);
-//						//current_board.SetOccupied (true);
-//						current_board.SetSelected (false);
-//						spawn = true;
-//					}
-//				}
-//			} else if (turn_phase == 2) {
-//				spawn = false;
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//			} else if (turn_phase == 3) {
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//			} else if (turn_phase == 4) {
-//				player_turn = 2;
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//
-//				for (int i = 0; i < BuildBoard.num_boards; i++) {
-//					Board current_board = BuildBoard.all_boards [i].GetComponent<Board>();
-//					if (!spawn && current_board.isSpawner && current_board.GetOwner() == player_turn && !current_board.IsOccupied() && current_board.IsSelected()) {
-//						Debug.Log ("Completed Unit Spawn for P2");
-//						Vector3 spawn_position = new Vector3 (BuildBoard.all_boards [i].transform.position.x, BuildBoard.all_boards [i].transform.position.y + 5,
-//							BuildBoard.all_boards [i].transform.position.z);
-//						player2_units [p2_units] = Instantiate (pawn_unit, spawn_position, Quaternion.identity);
-//						//current_board.SetOccupied (true);
-//						spawn = true;
-//					}
-//				}
-//			} else if (turn_phase == 5) {
-//				spawn = false;
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//			} else if (turn_phase == 6) {
-//				//Debug.Log ("turn_phase = " + turn_phase.ToString());
-//			}
-//
-//			if (turn_phase > 6)
-//				turn_phase = 1;
-//			
-//		}
-//		if (Input.GetKeyDown (KeyCode.Space)) {
-//			board_builder.enable_build ();
-//			game_start = true;
-//		}
-//		if (Input.GetKeyDown (KeyCode.E)) {
-//			end_turn = true;
-//		}
 
+	void Start () {
+	}
+
+	void Update () {
 		if (gameOver)
 			return;
 
-		if(Input.GetKeyDown(KeyCode.Delete) && selectedUnit != null)
-		{
-			DestroySelectedUnit();
-		}
-
-		if(turn_phase == 2 && !hasUpgraded && selectedUnit != null)
+		if(selectedUnit != null)
 		{
 			if (Input.GetKeyDown (KeyCode.S))
 				SacrificeSelectedUnit ();
@@ -118,7 +37,7 @@ public class GameState : MonoBehaviour {
 		{
 			OnLeftMouseDown ();
 		}
-		else if(turn_phase == 3 && Input.GetMouseButtonDown(1))
+		else if( Input.GetMouseButtonDown(1))
 		{
 			OnRightMouseDown ();
 		}
@@ -138,9 +57,9 @@ public class GameState : MonoBehaviour {
 
 	private void SacrificeUnit(UnitScript unit)
 	{
-		++sacrifice[player_turn - 1];
+		++sacrifice[currentPlayer - 1];
 
-		if(player_turn == 1)
+		if(currentPlayer == 1)
 		{
 			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
 		}
@@ -156,19 +75,19 @@ public class GameState : MonoBehaviour {
 	{
 		SacrificeUnit (selectedUnit);
 		selectedUnit = null;
+		RemoveTileHighlights ();
 	}
 
 	private void UpgradeUnit()
 	{
-		if (sacrifice [player_turn - 1] == 0)
+		if (sacrifice [currentPlayer - 1] == 0)
 			return;
 
-		selectedUnit.AddPower (sacrifice[player_turn - 1]);
-		//selectedUnit.powerLevel += sacrifice[player_turn - 1];
-		sacrifice[player_turn - 1] = 0;
+		selectedUnit.AddPower (sacrifice[currentPlayer - 1]);
+		sacrifice[currentPlayer - 1] = 0;
 		hasUpgraded = true;
 		 
-		if(player_turn == 1)
+		if(currentPlayer == 1)
 		{
 			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: 0";
 		}
@@ -176,21 +95,26 @@ public class GameState : MonoBehaviour {
 		{
 			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: 0";
 		}
+
+		HighlightSelectedUnitMoves ();
 	}
 
 	private UnitScript SpawnNewUnit(Board tile)
 	{
-		
+		if(unitPrefab == null)
+		{
+			Debug.LogError ("Spawn error: no unit prefab");
+			return null;
+		}
 
-		if (tile.IsOccupied () || unitPrefab == null) {
-			//Debug.LogError ("could not spawn unit");
-			print("could not spawn new unit");
+		if (tile.IsOccupied ()) {
+			print ("Unit not spawned: tile is occupied");
 			return null;
 		}
 
 		UnitScript newUnit = Instantiate (unitPrefab).GetComponent<UnitScript>();
-		newUnit.playerOwner = player_turn;
-		newUnit.SetMaterials (unitDefaultMaterials [player_turn - 1], unitSelectedMaterials [player_turn - 1]);
+		newUnit.playerOwner = currentPlayer;
+		newUnit.SetMaterials (unitDefaultMaterials [currentPlayer - 1], unitSelectedMaterials [currentPlayer - 1]);
 		tile.Occupy (newUnit);
 		hasSpawned = true;
 		return newUnit;
@@ -199,39 +123,15 @@ public class GameState : MonoBehaviour {
 	private void OnLeftMouseDown() 
 	{
 		int unitsLayerMask = 1 << 9;
-		int tilesLayerMask = 1 << 8;
 		RaycastHit hitInfo;
 		UnitScript unit;
-		Board tile;
 
-		switch(turn_phase)
-		{
-		case 1:
-			if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, tilesLayerMask)) {
-				tile = hitInfo.transform.GetComponent<Board> ();
-				if(!hasSpawned && tile.isSpawner && tile.player_owner == player_turn)
-				{
-					SpawnNewUnit (tile);
-				}
-			}
-			break;
-		case 2:
-			if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, unitsLayerMask)) {
-				unit = hitInfo.transform.GetComponent<UnitScript> ();
-				if (unit.playerOwner == player_turn)
-					SelectUnit (unit);
-			} else
-				DeselectUnit ();
-			break;
-		case 3:
-			if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, unitsLayerMask)) {
-				unit = hitInfo.transform.GetComponent<UnitScript> ();
-				if (unit.playerOwner == player_turn)
-					SelectUnit (hitInfo.transform.GetComponent<UnitScript> ());
-			} else
-				DeselectUnit ();
-			break;
-		}
+		if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, unitsLayerMask)) {
+			unit = hitInfo.transform.GetComponent<UnitScript> ();
+			if (unit.playerOwner == currentPlayer)
+				SelectUnit (hitInfo.transform.GetComponent<UnitScript> ());
+		} else
+			DeselectUnit ();
 	}
 
 
@@ -243,13 +143,16 @@ public class GameState : MonoBehaviour {
 
 		int tilesLayerMask = 1 << 8;
 		RaycastHit hitInfo;
+		Board dest;
 
 		if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, Mathf.Infinity, tilesLayerMask))
 		{
-			Board dest = hitInfo.transform.GetComponent<Board> ();
+			dest = hitInfo.transform.GetComponent<Board> ();
 
 			if(selectedUnit.CanMoveToTile(dest)) 
 			{
+				//selectedUnit.MoveToTile(dest);
+
 				if(!dest.IsOccupied())
 				{
 					selectedUnit.currentTile.Vacate ();
@@ -259,7 +162,7 @@ public class GameState : MonoBehaviour {
 				}
 				else
 				{
-					if(dest.occupyingUnit.playerOwner != player_turn)
+					if(dest.occupyingUnit.playerOwner != currentPlayer)
 					{
 						SacrificeUnit (dest.occupyingUnit);
 						selectedUnit.currentTile.Vacate ();
@@ -291,7 +194,7 @@ public class GameState : MonoBehaviour {
 		unit.Select ();
 		selectedUnit = unit;
 
-		if(turn_phase == 3 && !unit.GetMoved())
+		if(!unit.GetMoved())
 		{
 			HighlightSelectedUnitMoves ();
 		}
@@ -324,32 +227,41 @@ public class GameState : MonoBehaviour {
 		tile.Occupy (selectedUnit);
 	}
 
-	public string AdvanceTurn()
+	public void AdvanceTurn()
 	{
-		++turn_phase;
+		int previousPlayer = currentPlayer;
+		hasSpawned = false;
+		hasUpgraded = false;
 
-		switch(turn_phase)
+		if (currentPlayer == 1)
+			currentPlayer = 2;
+		else
+			currentPlayer = 1;
+
+		if(GameIsOver())
 		{
-		case 2:
-			Turn2Setup ();
-			return "Upgrade Phase";
-		case 3:
-			Turn3Setup ();
-			return "Movement Phase";
-		case 4:
-			turn_phase = 1;
-			Turn1Setup ();
-			return "Spawn Phase";
+			gameOver = true;
+			Text gameOverText = GameObject.FindGameObjectWithTag ("Finish").GetComponent<Text>();
+			gameOverText.text = "PLAYER " + previousPlayer + " HAS WON";
+			gameOverText.enabled = true;
 		}
 
-		return "PHASE ERROR";
-	}
+		GameObject[] units = GameObject.FindGameObjectsWithTag ("unit");
+		foreach (GameObject unit in units)
+			if(unit.GetComponent<UnitScript>().playerOwner == currentPlayer)
+				unit.GetComponent<UnitScript> ().SetMoved(false);
 
-	public int GetTurnPhase()
-	{
-		return turn_phase;
-	}
+		GameObject[] tiles = GameObject.FindGameObjectsWithTag("tile");
+		foreach(GameObject t in tiles)
+		{
+			Board tile = t.GetComponent<Board> ();
+			if (tile.player_owner == currentPlayer)
+				SpawnNewUnit (tile);
+		}
 
+
+	}
+	 
 	private bool GameIsOver()
 	{
 		GameObject[] tiles = GameObject.FindGameObjectsWithTag ("tile");
@@ -359,44 +271,12 @@ public class GameState : MonoBehaviour {
 		{
 			Board tile = tileObj.GetComponent<Board> ();
 
-			if(tile.player_owner == player_turn && tile.IsOccupied() && tile.occupyingUnit.playerOwner != tile.player_owner)
+			if(tile.player_owner == currentPlayer && tile.IsOccupied() && tile.occupyingUnit.playerOwner != tile.player_owner)
 			{
 				++tilesCaptured;
 			}
 		}
 
 		return (tilesCaptured == 2);
-	}
-
-	private void Turn1Setup()
-	{
-		int previousPlayer = player_turn;
-		hasSpawned = false;
-
-		if (player_turn == 1)
-			player_turn = 2;
-		else
-			player_turn = 1;
-
-		if(GameIsOver())
-		{
-			gameOver = true;
-			Text gameOverText = GameObject.FindGameObjectWithTag ("Finish").GetComponent<Text>();
-			gameOverText.text = "PLAYER " + previousPlayer + " HAS WON";
-			gameOverText.enabled = true;
-		}
-	}
-
-	private void Turn2Setup()
-	{
-		
-		hasUpgraded = false;
-	}
-
-	private void Turn3Setup()
-	{
-		GameObject[] units = GameObject.FindGameObjectsWithTag ("unit");
-		foreach (GameObject unit in units)
-			unit.GetComponent<UnitScript> ().SetMoved(false);
 	}
 }

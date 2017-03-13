@@ -10,7 +10,6 @@ public class UIController : MonoBehaviour {
 	private Text playerText;
 	private Text buttonText;
 	private GameState gameStateHandler;
-	private string player = "Player 1";
 
 	// Use this for initialization
 	void Start () {
@@ -29,13 +28,11 @@ public class UIController : MonoBehaviour {
 
 		gameStateHandler = FindObjectOfType<GameState> ();
 
-		//transform.position = player1.position;
 		ButtonClicked ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
 	}
 
 	public void ButtonClicked()
@@ -43,35 +40,18 @@ public class UIController : MonoBehaviour {
 		if (gameStateHandler.gameOver)
 			return;
 
-		string phaseText = gameStateHandler.AdvanceTurn ();
-
-		int phase = gameStateHandler.GetTurnPhase ();
-
-		if(phase == 1)
-		{
-			SwapPosition ();
-		}
-
-		if(phase == 3)
-		{
-			buttonText.text = "End Turn";
-		}
-		else
-		{
-			buttonText.text = "Next Phase";
-		}
-
-		playerText.text = player + " " + phaseText;
+		gameStateHandler.AdvanceTurn ();
+		SwapPosition ();
 	}
 
 	private void SwapPosition()
 	{
 		if (transform.position == player1.position) {
 			transform.position = player2.position;
-			player = "Player 2";
+			playerText.text = "Player 2";
 		} else {
 			transform.position = player1.position;
-			player = "Player 1";
+			playerText.text = "Player 1";
 		}
 	}
 }

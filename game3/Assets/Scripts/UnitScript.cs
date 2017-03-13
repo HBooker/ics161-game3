@@ -4,26 +4,26 @@ using UnityEngine;
 
 public class UnitScript : MonoBehaviour {
 	public int powerLevel;
-	private bool isSelected = false;
-	bool moved;
+	private bool moved = false;
 
 	public Material defaultMaterial;
 	public Material selectedMaterial;
-
 	public int playerOwner = 0;
-	private MeshRenderer mesh;
 	public Board currentTile = null;
 
-
+	private float moveRange = 1.5f;
+	private MeshRenderer mesh;
+	private Animator anim;
 
 	// Use this for initialization
 	void Start () {
 		powerLevel = 1;
-		isSelected = false;
 		moved = false;
 
 		mesh = GetComponent<MeshRenderer> ();
 		mesh.material = defaultMaterial;
+		anim = GetComponent<Animator> ();
+		//anim.Stop ();
 	}
 	
 	// Update is called once per frame
@@ -48,19 +48,9 @@ public class UnitScript : MonoBehaviour {
 		selectedMaterial = sel;
 	}
 
-	private void OnLeftMouseDown() {
-		if (GameObject.FindWithTag ("unit")) {
-			isSelected = !isSelected;
-			if (isSelected)
-				isSelected = isSelected; //change later
-			else
-				isSelected = isSelected; // change later
-		}
-
-	}
-
 	public void SetMoved (bool has_moved) {
 		moved = has_moved;
+		anim.SetBool ("moveable", !moved);
 	}
 
 	public bool GetMoved()
@@ -71,20 +61,24 @@ public class UnitScript : MonoBehaviour {
 	public void Select()
 	{
 		mesh.material = selectedMaterial;
-		isSelected = true;
 	}
 
 	public void Deselect()
 	{
 		mesh.material = defaultMaterial;
-		isSelected = false;
 	}
 
 	public bool CanMoveToTile(Board tile)
 	{
 		float dist = Vector3.Distance (tile.transform.position, currentTile.transform.position);
-		//print ("dist: " + dist);
-		if (moved || dist > powerLevel * 10)
+
+		if(tile.occupyingUnit != null)
+		{
+			if((tile.occupyingUnit.playerOwner != playerOwner && tile.occupyingUnit.powerLevel > powerLevel) || tile.occupyingUnit.playerOwner == playerOwner)
+				return false;
+		}
+
+		if (moved || dist > moveRange * 10)
 			return false;
 
 		return true;

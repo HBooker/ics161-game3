@@ -13,6 +13,7 @@ public class GameState : MonoBehaviour {
 	private UnitScript selectedUnit = null;
 	public GameObject unitPrefab;
 
+	public AudioSource bgm;
 	public Material[] unitDefaultMaterials = new Material[2];
 	public Material[] unitSelectedMaterials = new Material[2];
 	public bool gameOver = false;
@@ -24,7 +25,10 @@ public class GameState : MonoBehaviour {
 	void Update () {
 		if (gameOver)
 			return;
-
+		if (Input.GetKeyDown (KeyCode.Z))
+			bgm.volume -= 0.1f;
+		if (Input.GetKeyDown (KeyCode.X))
+			bgm.volume += 0.1f;
 		if(selectedUnit != null)
 		{
 			if (Input.GetKeyDown (KeyCode.S))

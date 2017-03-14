@@ -5,6 +5,7 @@ using UnityEngine;
 public class UnitScript : MonoBehaviour {
 	public int powerLevel;
 	private bool moved = false;
+	public bool invincible = false;
 
 	public Material defaultMaterial;
 	public Material selectedMaterial;
@@ -30,16 +31,21 @@ public class UnitScript : MonoBehaviour {
 	void Update () {
 		
 	}
-
+	public void SetInvincible (bool is_invincible)
+	{
+		invincible = is_invincible;
+	}
 	public void AddPower(int increase)
 	{
 		powerLevel += increase;
 
 		MeshRenderer[] spheres = GetComponentsInChildren<MeshRenderer> ();
-		for(int i = 0; i < powerLevel && i < spheres.Length; ++i)
+		for(int i = 0; i < powerLevel && i < 8; ++i)
 		{
 			spheres [i].enabled = true;
 		}
+		TextMesh unit_level = GetComponentInChildren<TextMesh> ();
+		unit_level.text = powerLevel.ToString ();
 	}
 
 	public void SetMaterials(Material def, Material sel)
@@ -74,7 +80,7 @@ public class UnitScript : MonoBehaviour {
 
 		if(tile.occupyingUnit != null)
 		{
-			if((tile.occupyingUnit.playerOwner != playerOwner && tile.occupyingUnit.powerLevel > powerLevel) || tile.occupyingUnit.playerOwner == playerOwner)
+			if((tile.occupyingUnit.playerOwner != playerOwner && tile.occupyingUnit.powerLevel > powerLevel || tile.occupyingUnit.invincible == true) || tile.occupyingUnit.playerOwner == playerOwner)
 				return false;
 		}
 

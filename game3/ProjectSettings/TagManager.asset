@@ -10,6 +10,10 @@ TagManager:
   - tile
   - p1sac
   - p2sac
+  - unitlevel
+  - eh1
+  - eh2
+  - eh3
   layers:
   - Default
   - TransparentFX

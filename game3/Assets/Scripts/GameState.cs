@@ -31,6 +31,8 @@ public class GameState : MonoBehaviour {
 				SacrificeSelectedUnit ();
 			else if (Input.GetKeyDown (KeyCode.U))
 				UpgradeUnit ();
+			else if (Input.GetKeyDown (KeyCode.I))
+				InvincibleUnit ();
 		}
 
 		if (Input.GetMouseButtonDown (0)) 
@@ -56,8 +58,9 @@ public class GameState : MonoBehaviour {
 	}
 
 	private void SacrificeUnit(UnitScript unit)
-	{
-		++sacrifice[currentPlayer - 1];
+	{	
+		int unit_lvl = unit.powerLevel;
+		sacrifice[currentPlayer - 1] += unit_lvl;
 
 		if(currentPlayer == 1)
 		{
@@ -83,17 +86,36 @@ public class GameState : MonoBehaviour {
 		if (sacrifice [currentPlayer - 1] == 0)
 			return;
 
-		selectedUnit.AddPower (sacrifice[currentPlayer - 1]);
-		sacrifice[currentPlayer - 1] = 0;
+		selectedUnit.AddPower (1);
+		sacrifice[currentPlayer - 1] -= 1;
 		hasUpgraded = true;
 		 
 		if(currentPlayer == 1)
 		{
-			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: 0";
+			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
 		}
 		else
 		{
-			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: 0";
+			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: " + sacrifice[1];
+		}
+
+		HighlightSelectedUnitMoves ();
+	}
+	private void InvincibleUnit()
+	{
+		if (sacrifice [currentPlayer - 1] == 0)
+			return;
+
+		selectedUnit.SetInvincible (true);
+		sacrifice[currentPlayer - 1] -= 1;
+
+		if(currentPlayer == 1)
+		{
+			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
+		}
+		else
+		{
+			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: " + sacrifice[1];
 		}
 
 		HighlightSelectedUnitMoves ();
@@ -248,8 +270,10 @@ public class GameState : MonoBehaviour {
 
 		GameObject[] units = GameObject.FindGameObjectsWithTag ("unit");
 		foreach (GameObject unit in units)
-			if(unit.GetComponent<UnitScript>().playerOwner == currentPlayer)
-				unit.GetComponent<UnitScript> ().SetMoved(false);
+			if (unit.GetComponent<UnitScript> ().playerOwner == currentPlayer) {
+				unit.GetComponent<UnitScript> ().SetMoved (false);
+				unit.GetComponent<UnitScript> ().SetInvincible (false);
+			}
 
 		GameObject[] tiles = GameObject.FindGameObjectsWithTag("tile");
 		foreach(GameObject t in tiles)

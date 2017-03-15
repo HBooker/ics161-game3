@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Board : MonoBehaviour {
+public class TileController : MonoBehaviour {
 	public bool isSpawner = false;
 	public bool selected = false;
 	public float unitYOffset = 4.0f;
 
 	public int player_on_tile = 0;
-	public int player_owner = 0;
+	public int player_owner = 0; 
 
-	public UnitScript occupyingUnit = null;
+	public UnitController occupyingUnit = null;
 	public Material defaultMaterial;
 	public Material highlightMaterial;
 
@@ -24,28 +24,29 @@ public class Board : MonoBehaviour {
 			tileMesh = meshes [0];
 		else
 			tileMesh = meshes [1];
-	}
 
+		if (occupyingUnit != null)
+			Occupy (occupyingUnit);
+	}
+	 
 	void Update ()
 	{
 		if (selected && Input.GetKeyDown (KeyCode.BackQuote)) {
-			Occupy (FindObjectOfType<UnitScript>());
+			Occupy (FindObjectOfType<UnitController>());
 		}
 	}
 
-	public void Occupy(UnitScript unit)
+	public void Occupy(UnitController unit)
 	{
-		if(IsOccupied())
-		{
-			//do something
-		}
-		else
-		{
-			Vector3 unitPosition = new Vector3 (transform.position.x, transform.position.y + unitYOffset, transform.position.z);
-			unit.transform.position = unitPosition;
-			occupyingUnit = unit;
-			unit.currentTile = this;
-		}
+//		if(IsOccupied())
+//		{
+//			return;
+//		}
+
+		Vector3 unitPosition = new Vector3 (transform.position.x, transform.position.y + unitYOffset, transform.position.z);
+		unit.transform.position = unitPosition;
+		occupyingUnit = unit;
+		unit.currentTile = this;
 	}
 
 	public void Vacate()

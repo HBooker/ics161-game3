@@ -2,32 +2,34 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitScript : MonoBehaviour {
+public class UnitController : MonoBehaviour {
 	public int powerLevel;
-	private bool moved = false;
+	private bool hasMoved = false;
 	public bool invincible = false;
 
 	public Material defaultMaterial;
 	public Material selectedMaterial;
-	public int playerOwner = 0;
-	public Board currentTile = null;
+	public int playerOwner = 0; 
+	public TileController currentTile = null;
 
 	private float moveRange = 1.5f;
 	private MeshRenderer mesh;
 	private Animator anim;
+	private TextMesh unit_level;
 
-	// Use this for initialization
+	void Awake()
+	{
+		mesh = GetComponent<MeshRenderer> ();
+		anim = GetComponent<Animator> ();
+		unit_level = GetComponentInChildren<TextMesh> ();
+	}
+
 	void Start () {
 		powerLevel = 1;
-		moved = false;
-
-		mesh = GetComponent<MeshRenderer> ();
+		hasMoved = false;
 		mesh.material = defaultMaterial;
-		anim = GetComponent<Animator> ();
-		//anim.Stop ();
 	}
-	
-	// Update is called once per frame
+
 	void Update () {
 		
 	}
@@ -37,15 +39,12 @@ public class UnitScript : MonoBehaviour {
 	}
 	public void AddPower(int increase)
 	{
+		print ("increase " + increase);
+		print ("powerLevel " + powerLevel);
 		powerLevel += increase;
-
-		MeshRenderer[] spheres = GetComponentsInChildren<MeshRenderer> ();
-		for(int i = 0; i < powerLevel && i < 8; ++i)
-		{
-			spheres [i].enabled = true;
-		}
-		TextMesh unit_level = GetComponentInChildren<TextMesh> ();
+		print ("powerLevel + increase " + powerLevel);
 		unit_level.text = powerLevel.ToString ();
+		print (powerLevel.ToString());
 	}
 
 	public void SetMaterials(Material def, Material sel)
@@ -55,36 +54,37 @@ public class UnitScript : MonoBehaviour {
 	}
 
 	public void SetMoved (bool has_moved) {
-		moved = has_moved;
-		anim.SetBool ("moveable", !moved);
+		hasMoved = has_moved;
+		anim.SetBool ("moveable", !hasMoved);
 	}
 
 	public bool GetMoved()
 	{
-		return moved;
+		return hasMoved;
 	}
 
 	public void Select()
 	{
+		anim.SetBool ("moveable", false);
 		mesh.material = selectedMaterial;
 	}
 
 	public void Deselect()
 	{
+		anim.SetBool ("moveable", !hasMoved);
 		mesh.material = defaultMaterial;
 	}
 
-	public bool CanMoveToTile(Board tile)
+	public bool CanMoveToTile(TileController tile)
 	{
 		float dist = Vector3.Distance (tile.transform.position, currentTile.transform.position);
 
-		if(tile.occupyingUnit != null)
+		if(tile.occupyingUnit != null && (tile.occupyingUnit.invincible == true || tile.occupyingUnit.playerOwner == playerOwner))
 		{
-			if((tile.occupyingUnit.playerOwner != playerOwner && tile.occupyingUnit.powerLevel > powerLevel || tile.occupyingUnit.invincible == true) || tile.occupyingUnit.playerOwner == playerOwner)
-				return false;
+			return false;
 		}
 
-		if (moved || dist > moveRange * 10)
+		if (hasMoved || dist > moveRange * 10)
 			return false;
 
 		return true;

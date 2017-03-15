@@ -4,31 +4,32 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameState : MonoBehaviour {
-	//int turn_phase = 3;
-	bool hasSpawned = false;
-	bool hasUpgraded = false;
-	int currentPlayer = 2;
-
-	int[] sacrifice = {0, 0};
-	private UnitScript selectedUnit = null;
+	public int currentPlayer = 2;
+	public int maxRounds = 20;
+	int[] sacrifice = {0, 6};
+	private UnitController selectedUnit = null;
 	public GameObject unitPrefab;
 
 	public AudioSource bgm;
 	public Material[] unitDefaultMaterials = new Material[2];
 	public Material[] unitSelectedMaterials = new Material[2];
 	public bool gameOver = false;
-
+	private int roundsRemaining;
 
 	void Start () {
+		bgm.enabled = false;
+		roundsRemaining = maxRounds + 1;
 	}
 
 	void Update () {
-		if (gameOver)
-			return;
 		if (Input.GetKeyDown (KeyCode.Z))
 			bgm.volume -= 0.1f;
 		if (Input.GetKeyDown (KeyCode.X))
 			bgm.volume += 0.1f;
+
+		if (gameOver)
+			return;
+
 		if(selectedUnit != null)
 		{
 			if (Input.GetKeyDown (KeyCode.S))
@@ -49,7 +50,57 @@ public class GameState : MonoBehaviour {
 		}
 	}
 
-	private void DestroyUnit(UnitScript unit)
+	private UnitController[] GetAllUnits()
+	{
+		GameObject[] objs = GameObject.FindGameObjectsWithTag ("unit");
+		List<UnitController> units = new List<UnitController>();
+
+		foreach(GameObject obj in objs)
+			units.Add (obj.GetComponent<UnitController> ());
+
+		return units.ToArray ();
+	}
+
+	private UnitController[] GetAllPlayerUnits(int player)
+	{
+		UnitController[] allUnits = GetAllUnits ();
+		List<UnitController> units = new List<UnitController>();
+
+		foreach(UnitController unit in allUnits)
+		{
+			if (unit.playerOwner == player)
+				units.Add (unit);
+		}
+
+		return units.ToArray ();
+	}
+
+	private TileController[] GetAllTiles()
+	{
+		GameObject[] objs = GameObject.FindGameObjectsWithTag ("tile");
+		TileController[] tiles = new TileController[objs.Length];
+
+		for (int i = 0; i < tiles.Length; ++i)
+			tiles [i] = objs [i].GetComponent<TileController> ();
+
+		return tiles;
+	}
+
+	private TileController[] GetAllPlayerSpawners(int player)
+	{
+		TileController[] tiles = GetAllTiles ();
+		List<TileController> playerSpanwers = new List<TileController> ();
+
+		foreach(TileController tile in tiles)
+		{
+			if(tile.player_owner == player)
+				playerSpanwers.Add (tile);
+		}
+
+		return playerSpanwers.ToArray ();
+	}
+
+	private void DestroyUnit(UnitController unit)
 	{
 		unit.currentTile.Vacate ();
 		Destroy (unit.gameObject);
@@ -61,28 +112,30 @@ public class GameState : MonoBehaviour {
 		selectedUnit = null;
 	}
 
-	private void SacrificeUnit(UnitScript unit)
+	private void UpdatePlayerSacrificeCounter(int player)
+	{
+		string objTag = "p" + currentPlayer + "sac";
+		string sacrificeText = "Player " + currentPlayer + " Scrap: " + sacrifice[currentPlayer - 1];
+		GameObject.FindGameObjectWithTag (objTag).GetComponent<Text>().text = sacrificeText;
+	}
+
+	private void AddPlayerSacrificePoints(int player, int points)
+	{
+		sacrifice [player - 1] += points;
+		UpdatePlayerSacrificeCounter (player);
+	}
+
+	private void SacrificeUnit(UnitController unit)
 	{	
-		int unit_lvl = unit.powerLevel;
-		sacrifice[currentPlayer - 1] += unit_lvl;
-
-		if(currentPlayer == 1)
-		{
-			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
-		}
-		else
-		{
-			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: " + sacrifice[1];
-		}
-
+		AddPlayerSacrificePoints (currentPlayer, unit.powerLevel);
 		DestroyUnit (unit);
 	}
 
 	private void SacrificeSelectedUnit()
 	{
-		SacrificeUnit (selectedUnit);
-		selectedUnit = null;
-		RemoveTileHighlights ();
+		UnitController unit = selectedUnit;
+		DeselectUnit ();
+		SacrificeUnit (unit);
 	}
 
 	private void UpgradeUnit()
@@ -92,17 +145,7 @@ public class GameState : MonoBehaviour {
 
 		selectedUnit.AddPower (1);
 		sacrifice[currentPlayer - 1] -= 1;
-		hasUpgraded = true;
-		 
-		if(currentPlayer == 1)
-		{
-			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
-		}
-		else
-		{
-			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: " + sacrifice[1];
-		}
-
+		UpdatePlayerSacrificeCounter (currentPlayer);
 		HighlightSelectedUnitMoves ();
 	}
 	private void InvincibleUnit()
@@ -112,20 +155,11 @@ public class GameState : MonoBehaviour {
 
 		selectedUnit.SetInvincible (true);
 		sacrifice[currentPlayer - 1] -= 1;
-
-		if(currentPlayer == 1)
-		{
-			GameObject.FindGameObjectWithTag ("p1sac").GetComponent<Text>().text = "P1 Sacrifice: " + sacrifice[0];
-		}
-		else
-		{
-			GameObject.FindGameObjectWithTag ("p2sac").GetComponent<Text>().text = "P2 Sacrifice: " + sacrifice[1];
-		}
-
+		UpdatePlayerSacrificeCounter (currentPlayer);
 		HighlightSelectedUnitMoves ();
 	}
 
-	private UnitScript SpawnNewUnit(Board tile)
+	private UnitController SpawnNewUnit(TileController tile)
 	{
 		if(unitPrefab == null)
 		{
@@ -138,11 +172,10 @@ public class GameState : MonoBehaviour {
 			return null;
 		}
 
-		UnitScript newUnit = Instantiate (unitPrefab).GetComponent<UnitScript>();
+		UnitController newUnit = Instantiate (unitPrefab).GetComponent<UnitController>();
 		newUnit.playerOwner = currentPlayer;
 		newUnit.SetMaterials (unitDefaultMaterials [currentPlayer - 1], unitSelectedMaterials [currentPlayer - 1]);
 		tile.Occupy (newUnit);
-		hasSpawned = true;
 		return newUnit;
 	}
 
@@ -150,17 +183,23 @@ public class GameState : MonoBehaviour {
 	{
 		int unitsLayerMask = 1 << 9;
 		RaycastHit hitInfo;
-		UnitScript unit;
+		UnitController unit;
 
 		if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, unitsLayerMask)) {
-			unit = hitInfo.transform.GetComponent<UnitScript> ();
-			if (unit.playerOwner == currentPlayer)
-				SelectUnit (hitInfo.transform.GetComponent<UnitScript> ());
+			unit = hitInfo.transform.GetComponent<UnitController> ();
+			if (unit.playerOwner == currentPlayer && !unit.GetMoved())
+				SelectUnit (hitInfo.transform.GetComponent<UnitController> ());
 		} else
 			DeselectUnit ();
 	}
 
-
+	private void EndGame(int playerWinner)
+	{
+		gameOver = true;
+		Text gameOverText = GameObject.FindGameObjectWithTag ("Finish").GetComponent<Text>();
+		gameOverText.text = "PLAYER " + playerWinner + " HAS WON";
+		gameOverText.enabled = true;
+	}
 
 	private void OnRightMouseDown()
 	{
@@ -169,50 +208,83 @@ public class GameState : MonoBehaviour {
 
 		int tilesLayerMask = 1 << 8;
 		RaycastHit hitInfo;
-		Board dest;
+		TileController dest;
 
 		if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, Mathf.Infinity, tilesLayerMask))
 		{
-			dest = hitInfo.transform.GetComponent<Board> ();
+			dest = hitInfo.transform.GetComponent<TileController> ();
 
 			if(selectedUnit.CanMoveToTile(dest)) 
 			{
-				//selectedUnit.MoveToTile(dest);
-
 				if(!dest.IsOccupied())
 				{
-					selectedUnit.currentTile.Vacate ();
-					dest.Occupy (selectedUnit);
-					selectedUnit.SetMoved (true);
+					MoveUnitToTile (selectedUnit, dest);
 					DeselectUnit ();
 				}
-				else
+				else //if(dest.occupyingUnit.playerOwner != currentPlayer)
 				{
-					if(dest.occupyingUnit.playerOwner != currentPlayer)
-					{
-						SacrificeUnit (dest.occupyingUnit);
-						selectedUnit.currentTile.Vacate ();
-						dest.Occupy (selectedUnit);
-						selectedUnit.SetMoved (true);
-						DeselectUnit ();
-					}
+					ResolveCombat (selectedUnit, dest.occupyingUnit);
+				}
+
+				if(PlayerSpawnersCaptured(currentPlayer))
+				{
+					EndGame (currentPlayer);
+				}
+				else if (!CurrentPlayerHasMovesAvailable())
+				{
+					//auto end turn OR enable some UI element telling player to end the turn
 				}
 			}
 		}
 	}
 
-	private void HighlightSelectedUnitMoves()
+	private void MoveUnitToTile(UnitController unit, TileController tile)
 	{
-		GameObject[] tiles = GameObject.FindGameObjectsWithTag ("tile");
-
-		foreach(GameObject tileObj in tiles)
-		{
-			Board tile = tileObj.GetComponent<Board> ();
-			tile.SetHighlight (selectedUnit.CanMoveToTile (tile));
-		}
+		unit.currentTile.Vacate ();
+		tile.Occupy (unit);
+		unit.SetMoved (true);
 	}
 
-	public void SelectUnit(UnitScript unit)
+	private void ResolveCombat(UnitController attacker, UnitController defender)
+	{
+		int powerDifference = attacker.powerLevel - defender.powerLevel;
+
+		if(powerDifference >= 0)
+		{
+			DestroyUnit (defender);
+			AddPlayerSacrificePoints (currentPlayer, 1);
+
+			//should attacker occupy defender's tile?
+			//attacker.currentTile.Vacate ();
+			//dest.Occupy (attacker);
+		}
+		else
+			defender.AddPower(-attacker.powerLevel);
+
+		attacker.SetMoved (true);
+		DeselectUnit ();
+	}
+
+	private bool CurrentPlayerHasMovesAvailable()
+	{
+		UnitController[] units = GetAllPlayerUnits (currentPlayer);
+
+		foreach(UnitController unit in units)
+			if (!unit.GetMoved ())
+				return true;
+		
+		return false;
+	}
+
+	private void HighlightSelectedUnitMoves()
+	{
+		TileController[] tiles = GetAllTiles ();
+
+		foreach(TileController tile in tiles)
+			tile.SetHighlight (selectedUnit.CanMoveToTile (tile));
+	}
+
+	public void SelectUnit(UnitController unit)
 	{
 		if (selectedUnit != null)
 			DeselectUnit ();
@@ -221,9 +293,7 @@ public class GameState : MonoBehaviour {
 		selectedUnit = unit;
 
 		if(!unit.GetMoved())
-		{
 			HighlightSelectedUnitMoves ();
-		}
 	}
 
 	public void DeselectUnit()
@@ -239,72 +309,61 @@ public class GameState : MonoBehaviour {
 
 	private void RemoveTileHighlights()
 	{
-		GameObject[] tiles = GameObject.FindGameObjectsWithTag ("tile");
+		TileController[] tiles = GetAllTiles ();
 
-		foreach(GameObject tileObj in tiles)
-		{
-			Board tile = tileObj.GetComponent<Board> ();
+		foreach(TileController tile in tiles)
 			tile.SetHighlight (false);
-		}
 	}
 
-	public void OccupyTileWithUnit(Board tile)
+	private void UpdateRounds()
 	{
-		tile.Occupy (selectedUnit);
+		GameObject.FindGameObjectWithTag ("rounds").GetComponent<Text>().text = "Rounds Remaining: " + roundsRemaining;
 	}
 
 	public void AdvanceTurn()
 	{
-		int previousPlayer = currentPlayer;
-		hasSpawned = false;
-		hasUpgraded = false;
+		UpdatePlayerSacrificeCounter (currentPlayer);
+		currentPlayer = currentPlayer % 2 + 1;
 
-		if (currentPlayer == 1)
-			currentPlayer = 2;
-		else
-			currentPlayer = 1;
+//		if (currentPlayer == 1) {
+//			roundsRemaining--;
+//			UpdateRounds ();
+//		}
+//
+//		if(roundsRemaining == 0)
+//		{
+//			EndGame (2);
+//			return;
+//		}
 
-		if(GameIsOver())
+		UnitController[] units = GetAllUnits ();
+		foreach (UnitController unit in units)
 		{
-			gameOver = true;
-			Text gameOverText = GameObject.FindGameObjectWithTag ("Finish").GetComponent<Text>();
-			gameOverText.text = "PLAYER " + previousPlayer + " HAS WON";
-			gameOverText.enabled = true;
-		}
-
-		GameObject[] units = GameObject.FindGameObjectsWithTag ("unit");
-		foreach (GameObject unit in units)
-			if (unit.GetComponent<UnitScript> ().playerOwner == currentPlayer) {
-				unit.GetComponent<UnitScript> ().SetMoved (false);
-				unit.GetComponent<UnitScript> ().SetInvincible (false);
-			}
-
-		GameObject[] tiles = GameObject.FindGameObjectsWithTag("tile");
-		foreach(GameObject t in tiles)
-		{
-			Board tile = t.GetComponent<Board> ();
-			if (tile.player_owner == currentPlayer)
-				SpawnNewUnit (tile);
-		}
-
-
-	}
-	 
-	private bool GameIsOver()
-	{
-		GameObject[] tiles = GameObject.FindGameObjectsWithTag ("tile");
-		int tilesCaptured = 0;
-
-		foreach(GameObject tileObj in tiles)
-		{
-			Board tile = tileObj.GetComponent<Board> ();
-
-			if(tile.player_owner == currentPlayer && tile.IsOccupied() && tile.occupyingUnit.playerOwner != tile.player_owner)
+			if (unit.playerOwner == currentPlayer) 
 			{
-				++tilesCaptured;
+				unit.SetMoved (false);
+				unit.SetInvincible (false);
+			}
+			else
+			{
+				unit.SetMoved (true);
 			}
 		}
 
-		return (tilesCaptured == 2);
+		TileController[] tiles = GetAllPlayerSpawners (currentPlayer);
+		foreach(TileController tile in tiles)
+			SpawnNewUnit (tile);
+	}
+
+	private bool PlayerSpawnersCaptured(int player)
+	{
+		TileController[] tiles = GetAllPlayerSpawners(player);
+
+		foreach(TileController tile in tiles)
+			if(!tile.IsOccupied() || tile.occupyingUnit.playerOwner == player)
+				return false;
+
+		return true;
 	}
 }
+ 

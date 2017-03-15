@@ -4,11 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour {
-	public Transform player1;
-	public Transform player2;
+	public RectTransform player1;
+	public RectTransform player2;
 
 	private Text playerText;
-	private Text buttonText;
 	private GameState gameStateHandler;
 
 	// Use this for initialization
@@ -16,23 +15,19 @@ public class UIController : MonoBehaviour {
 		Text[] texts = GetComponentsInChildren<Text> ();
 
 		if(texts[0].gameObject.name == "PlayerText")
-		{
 			playerText = texts [0];
-			buttonText = texts [1];
-		}
 		else
-		{
-			buttonText = texts [0];
 			playerText = texts [1];
-		}
 
 		gameStateHandler = FindObjectOfType<GameState> ();
 
 		ButtonClicked ();
-	}
+	} 
 	
 	// Update is called once per frame
 	void Update () {
+//		if (Input.GetKeyDown (KeyCode.E))
+//			ButtonClicked ();
 	}
 
 	public void ButtonClicked()
@@ -41,17 +36,17 @@ public class UIController : MonoBehaviour {
 			return;
 
 		gameStateHandler.AdvanceTurn ();
-		SwapPosition ();
+		UpdatePosition ();
 	}
 
-	private void SwapPosition()
+	private void UpdatePosition()
 	{
-		if (transform.position == player1.position) {
+		if (gameStateHandler.currentPlayer == 2) {
 			transform.position = player2.position;
-			playerText.text = "Player 2";
+			playerText.text = "Player 2's Turn";
 		} else {
 			transform.position = player1.position;
-			playerText.text = "Player 1";
+			playerText.text = "Player 1's Turn";
 		}
 	}
 }

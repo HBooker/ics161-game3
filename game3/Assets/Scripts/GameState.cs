@@ -11,17 +11,21 @@ public class GameState : MonoBehaviour {
 	public GameObject unitPrefab;
 
 	public AudioSource bgm;
+	public AudioSource[] soundeffects;
 	public Material[] unitDefaultMaterials = new Material[2];
 	public Material[] unitSelectedMaterials = new Material[2];
 	public bool gameOver = false;
 	private int roundsRemaining;
 
 	void Start () {
-		bgm.enabled = false;
+		//bgm.enabled = false;
 		roundsRemaining = maxRounds + 1;
 	}
 
 	void Update () {
+		for (int i = 0; i < soundeffects.Length; ++i) {
+			soundeffects[i].volume = bgm.volume;
+		}
 		if (Input.GetKeyDown (KeyCode.Z))
 			bgm.volume -= 0.1f;
 		if (Input.GetKeyDown (KeyCode.X))
@@ -174,7 +178,11 @@ public class GameState : MonoBehaviour {
 
 		UnitController newUnit = Instantiate (unitPrefab).GetComponent<UnitController>();
 		newUnit.playerOwner = currentPlayer;
+		newUnit.FlipSprite ();
 		newUnit.SetMaterials (unitDefaultMaterials [currentPlayer - 1], unitSelectedMaterials [currentPlayer - 1]);
+		if (currentPlayer == 2) {
+			//
+		}
 		tile.Occupy (newUnit);
 		return newUnit;
 	}
@@ -187,7 +195,7 @@ public class GameState : MonoBehaviour {
 
 		if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hitInfo, Mathf.Infinity, unitsLayerMask)) {
 			unit = hitInfo.transform.GetComponent<UnitController> ();
-			if (unit.playerOwner == currentPlayer && !unit.GetMoved())
+			if (unit.playerOwner == currentPlayer ) //&& !unit.GetMoved()
 				SelectUnit (hitInfo.transform.GetComponent<UnitController> ());
 		} else
 			DeselectUnit ();
@@ -218,6 +226,7 @@ public class GameState : MonoBehaviour {
 			{
 				if(!dest.IsOccupied())
 				{
+					soundeffects [3].Play ();
 					MoveUnitToTile (selectedUnit, dest);
 					DeselectUnit ();
 				}
@@ -248,18 +257,21 @@ public class GameState : MonoBehaviour {
 	private void ResolveCombat(UnitController attacker, UnitController defender)
 	{
 		int powerDifference = attacker.powerLevel - defender.powerLevel;
-
-		if(powerDifference >= 0)
-		{
-			DestroyUnit (defender);
+		attacker.SetAttacking ();
+		soundeffects[0].Play ();
+		if (powerDifference >= 0) {
+			soundeffects [2].Play ();
 			AddPlayerSacrificePoints (currentPlayer, 1);
-
-			//should attacker occupy defender's tile?
-			//attacker.currentTile.Vacate ();
-			//dest.Occupy (attacker);
+			if (powerDifference > 0) //should attacker occupy defender's tile?
+				StartCoroutine (kill_tank_and_move (defender, attacker));
+			else
+				StartCoroutine (kill_tank (defender));
+			
+		} else {
+			defender.AddPower (-attacker.powerLevel);
+			soundeffects [1].Play ();
+			defender.SetHit ();
 		}
-		else
-			defender.AddPower(-attacker.powerLevel);
 
 		attacker.SetMoved (true);
 		DeselectUnit ();
@@ -365,5 +377,20 @@ public class GameState : MonoBehaviour {
 
 		return true;
 	}
+	IEnumerator kill_tank (UnitController unit) {
+		unit.SetDead();
+		yield return new WaitForSeconds(1.3f);
+		DestroyUnit (unit);
+	}
+
+	IEnumerator kill_tank_and_move (UnitController defender, UnitController attacker) {
+		TileController dest = defender.currentTile;
+		defender.SetDead();
+		defender.SetInvincible (true);
+		yield return new WaitForSeconds(1.2f);
+		DestroyUnit (defender);
+		MoveUnitToTile(attacker, dest);
+	}
+
 }
  

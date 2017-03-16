@@ -16,12 +16,15 @@ public class UnitController : MonoBehaviour {
 	private MeshRenderer mesh;
 	private Animator anim;
 	private TextMesh unit_level;
+	private SpriteRenderer unit_sprite;
 
 	void Awake()
-	{
+	{	
 		mesh = GetComponent<MeshRenderer> ();
-		anim = GetComponent<Animator> ();
+		anim = GetComponentInChildren<Animator> ();
 		unit_level = GetComponentInChildren<TextMesh> ();
+		unit_sprite = GetComponentInChildren<SpriteRenderer> ();
+		FlipSprite ();
 	}
 
 	void Start () {
@@ -31,7 +34,10 @@ public class UnitController : MonoBehaviour {
 	}
 
 	void Update () {
-		
+		if (!hasMoved)
+			anim.SetBool ("isMoveable", true);
+		else
+			anim.SetBool ("isMoveable", false);
 	}
 	public void SetInvincible (bool is_invincible)
 	{
@@ -55,7 +61,7 @@ public class UnitController : MonoBehaviour {
 
 	public void SetMoved (bool has_moved) {
 		hasMoved = has_moved;
-		anim.SetBool ("moveable", !hasMoved);
+		anim.SetBool ("isMoveable", !hasMoved);
 	}
 
 	public bool GetMoved()
@@ -65,13 +71,13 @@ public class UnitController : MonoBehaviour {
 
 	public void Select()
 	{
-		anim.SetBool ("moveable", false);
+		anim.SetBool ("isMoveable", false);
 		mesh.material = selectedMaterial;
 	}
 
 	public void Deselect()
 	{
-		anim.SetBool ("moveable", !hasMoved);
+		anim.SetBool ("isMoveable", !hasMoved);
 		mesh.material = defaultMaterial;
 	}
 
@@ -88,5 +94,33 @@ public class UnitController : MonoBehaviour {
 			return false;
 
 		return true;
+	}
+
+	public void SetAttacking () {
+		StartCoroutine (AttackAnimation ());
+	}
+	IEnumerator AttackAnimation () {
+		anim.SetBool ("isAttacking", true);
+		yield return new WaitForSeconds(1.5f);
+		anim.SetBool ("isAttacking", false);
+	}
+
+	public void SetDead () {
+		anim.SetBool ("isDead", true);
+	}
+	public void SetHit () {
+		StartCoroutine (HitAnimation ());
+	}
+
+	IEnumerator HitAnimation () {
+		anim.SetBool ("isHit", true);
+		yield return new WaitForSeconds(1.5f);
+		anim.SetBool ("isHit", false);
+	}
+	public void FlipSprite() {
+		if (playerOwner == 2) {
+			unit_sprite.flipX = false;
+			unit_sprite.transform.localPosition.Set (-0.059f, 0.51f, 0.0f);
+		}
 	}
 }

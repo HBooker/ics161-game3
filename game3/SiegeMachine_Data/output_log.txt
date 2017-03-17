@@ -1,0 +1,47 @@
+Initialize engine version: 5.5.0f3 (38b4efef76f0)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 1070 (ID=0x1b81)
+    Vendor:   NVIDIA
+    VRAM:     3072 MB
+    Driver:   21.21.13.7878
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
+Loading C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
+- Completed reload, in  0.027 seconds
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Ichor-Mk.2\Documents\ics161-game3\game3\SiegeMachine_Data\Managed\System.dll (this message is harmless)
+desktop: 1920x1080 144Hz; virtual: 3840x1080 at -1920,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 1.008410 ms
+Setting up 1 worker threads for Enlighten.
+  Thread -> id: a3c -> priority: 1 
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 4.622522 ms
+
+Unloading 7 unused Assets to reduce memory usage. Loaded Objects now: 2058.
+Total: 0.542694 ms (FindLiveObjects: 0.117712 ms CreateObjectMapping: 0.040413 ms MarkObjects: 0.373342 ms  DeleteObjects: 0.010584 ms)
+
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 2.235887 ms
+
+Unloading 109 unused Assets to reduce memory usage. Loaded Objects now: 2059.
+Total: 0.687348 ms (FindLiveObjects: 0.083071 ms CreateObjectMapping: 0.043941 ms MarkObjects: 0.308873 ms  DeleteObjects: 0.251140 ms)
+
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 1.657590 ms
+
+Unloading 242 unused Assets to reduce memory usage. Loaded Objects now: 275.
+Total: 1.842337 ms (FindLiveObjects: 0.040734 ms CreateObjectMapping: 0.021810 ms MarkObjects: 0.157483 ms  DeleteObjects: 1.621988 ms)
+

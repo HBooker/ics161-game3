@@ -14,16 +14,19 @@ public class UnitController : MonoBehaviour {
 
 	private float moveRange = 1.5f;
 	private MeshRenderer mesh;
-	private Animator anim;
+	private Animator unitAnim;
+	private Animator invAnim;
 	private TextMesh unit_level;
 	private SpriteRenderer unit_sprite;
 
 	void Awake()
 	{	
 		mesh = GetComponent<MeshRenderer> ();
-		anim = GetComponentInChildren<Animator> ();
+		Animator[] anims = GetComponentsInChildren<Animator> ();
+		unitAnim = anims[1];
 		unit_level = GetComponentInChildren<TextMesh> ();
 		unit_sprite = GetComponentInChildren<SpriteRenderer> ();
+		invAnim = anims[0];
 		FlipSprite ();
 	}
 
@@ -34,23 +37,20 @@ public class UnitController : MonoBehaviour {
 	}
 
 	void Update () {
-		if (!hasMoved)
-			anim.SetBool ("isMoveable", true);
+		if (!hasMoved) 
+			unitAnim.SetBool ("isMoveable", true);
 		else
-			anim.SetBool ("isMoveable", false);
+			unitAnim.SetBool ("isMoveable", false);
 	}
 	public void SetInvincible (bool is_invincible)
 	{
 		invincible = is_invincible;
+		invAnim.SetBool ("isInvulnerable", is_invincible);
 	}
 	public void AddPower(int increase)
 	{
-		print ("increase " + increase);
-		print ("powerLevel " + powerLevel);
 		powerLevel += increase;
-		print ("powerLevel + increase " + powerLevel);
 		unit_level.text = powerLevel.ToString ();
-		print (powerLevel.ToString());
 	}
 
 	public void SetMaterials(Material def, Material sel)
@@ -61,7 +61,7 @@ public class UnitController : MonoBehaviour {
 
 	public void SetMoved (bool has_moved) {
 		hasMoved = has_moved;
-		anim.SetBool ("isMoveable", !hasMoved);
+		unitAnim.SetBool ("isMoveable", !hasMoved);
 	}
 
 	public bool GetMoved()
@@ -71,13 +71,13 @@ public class UnitController : MonoBehaviour {
 
 	public void Select()
 	{
-		anim.SetBool ("isMoveable", false);
+		unitAnim.SetBool ("isMoveable", false);
 		mesh.material = selectedMaterial;
 	}
 
 	public void Deselect()
 	{
-		anim.SetBool ("isMoveable", !hasMoved);
+		unitAnim.SetBool ("isMoveable", !hasMoved);
 		mesh.material = defaultMaterial;
 	}
 
@@ -100,22 +100,22 @@ public class UnitController : MonoBehaviour {
 		StartCoroutine (AttackAnimation ());
 	}
 	IEnumerator AttackAnimation () {
-		anim.SetBool ("isAttacking", true);
+		unitAnim.SetBool ("isAttacking", true);
 		yield return new WaitForSeconds(1.5f);
-		anim.SetBool ("isAttacking", false);
+		unitAnim.SetBool ("isAttacking", false);
 	}
 
 	public void SetDead () {
-		anim.SetBool ("isDead", true);
+		unitAnim.SetBool ("isDead", true);
 	}
 	public void SetHit () {
 		StartCoroutine (HitAnimation ());
 	}
 
 	IEnumerator HitAnimation () {
-		anim.SetBool ("isHit", true);
+		unitAnim.SetBool ("isHit", true);
 		yield return new WaitForSeconds(1.5f);
-		anim.SetBool ("isHit", false);
+		unitAnim.SetBool ("isHit", false);
 	}
 	public void FlipSprite() {
 		if (playerOwner == 2) {

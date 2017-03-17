@@ -15,6 +15,7 @@ TagManager:
   - eh2
   - eh3
   - rounds
+  - pausemenu
   layers:
   - Default
   - TransparentFX

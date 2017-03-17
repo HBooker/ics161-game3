@@ -16,9 +16,11 @@ public class GameState : MonoBehaviour {
 	public Material[] unitSelectedMaterials = new Material[2];
 	public bool gameOver = false;
 	private int roundsRemaining;
+	public bool gamePaused = false;
+	public bool endOfTurn = false;
+	public bool waitingForAnim = false;
 
 	void Start () {
-		//bgm.enabled = false;
 		roundsRemaining = maxRounds + 1;
 	}
 
@@ -31,7 +33,7 @@ public class GameState : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.X))
 			bgm.volume += 0.1f;
 
-		if (gameOver)
+		if (gameOver || gamePaused || waitingForAnim)
 			return;
 
 		if(selectedUnit != null)
@@ -52,6 +54,8 @@ public class GameState : MonoBehaviour {
 		{
 			OnRightMouseDown ();
 		}
+
+		endOfTurn = !CurrentPlayerHasMovesAvailable ();
 	}
 
 	private UnitController[] GetAllUnits()
@@ -119,7 +123,7 @@ public class GameState : MonoBehaviour {
 	private void UpdatePlayerSacrificeCounter(int player)
 	{
 		string objTag = "p" + currentPlayer + "sac";
-		string sacrificeText = "Player " + currentPlayer + " Scrap: " + sacrifice[currentPlayer - 1];
+		string sacrificeText = "Scrap: " + sacrifice[currentPlayer - 1];
 		GameObject.FindGameObjectWithTag (objTag).GetComponent<Text>().text = sacrificeText;
 	}
 
@@ -172,7 +176,7 @@ public class GameState : MonoBehaviour {
 		}
 
 		if (tile.IsOccupied ()) {
-			print ("Unit not spawned: tile is occupied");
+			//print ("Unit not spawned: tile is occupied");
 			return null;
 		}
 
@@ -230,18 +234,9 @@ public class GameState : MonoBehaviour {
 					MoveUnitToTile (selectedUnit, dest);
 					DeselectUnit ();
 				}
-				else //if(dest.occupyingUnit.playerOwner != currentPlayer)
+				else 
 				{
 					ResolveCombat (selectedUnit, dest.occupyingUnit);
-				}
-
-				if(PlayerSpawnersCaptured(currentPlayer))
-				{
-					EndGame (currentPlayer);
-				}
-				else if (!CurrentPlayerHasMovesAvailable())
-				{
-					//auto end turn OR enable some UI element telling player to end the turn
 				}
 			}
 		}
@@ -252,6 +247,11 @@ public class GameState : MonoBehaviour {
 		unit.currentTile.Vacate ();
 		tile.Occupy (unit);
 		unit.SetMoved (true);
+
+		if(PlayerSpawnersCaptured(currentPlayer % 2 + 1))
+		{
+			EndGame (currentPlayer);
+		}
 	}
 
 	private void ResolveCombat(UnitController attacker, UnitController defender)
@@ -262,7 +262,8 @@ public class GameState : MonoBehaviour {
 		if (powerDifference >= 0) {
 			soundeffects [2].Play ();
 			AddPlayerSacrificePoints (currentPlayer, 1);
-			if (powerDifference > 0) //should attacker occupy defender's tile?
+			waitingForAnim = true;
+			if (powerDifference > 0)
 				StartCoroutine (kill_tank_and_move (defender, attacker));
 			else
 				StartCoroutine (kill_tank (defender));
@@ -334,19 +335,9 @@ public class GameState : MonoBehaviour {
 
 	public void AdvanceTurn()
 	{
+		endOfTurn = false;
 		UpdatePlayerSacrificeCounter (currentPlayer);
 		currentPlayer = currentPlayer % 2 + 1;
-
-//		if (currentPlayer == 1) {
-//			roundsRemaining--;
-//			UpdateRounds ();
-//		}
-//
-//		if(roundsRemaining == 0)
-//		{
-//			EndGame (2);
-//			return;
-//		}
 
 		UnitController[] units = GetAllUnits ();
 		foreach (UnitController unit in units)
@@ -381,6 +372,7 @@ public class GameState : MonoBehaviour {
 		unit.SetDead();
 		yield return new WaitForSeconds(1.3f);
 		DestroyUnit (unit);
+		waitingForAnim = false;
 	}
 
 	IEnumerator kill_tank_and_move (UnitController defender, UnitController attacker) {
@@ -390,7 +382,6 @@ public class GameState : MonoBehaviour {
 		yield return new WaitForSeconds(1.2f);
 		DestroyUnit (defender);
 		MoveUnitToTile(attacker, dest);
+		waitingForAnim = false;
 	}
-
 }
- 
